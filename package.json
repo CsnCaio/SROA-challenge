@@ -6,7 +6,7 @@
     "url": "https://github.com/SROADev/api-template"
   },
   "scripts": {
-    "test": "jest --runInBand ./test",
+    "test": "jest --runInBand --watch ./test",
     "start": "nodemon",
     "start:sls": "sls offline start",
     "deploy-prod": "sls --stage=production deploy"
@@ -65,6 +65,7 @@
     "serverless-dotenv-plugin": "^3.9.0",
     "serverless-webpack": "^5.5.1",
     "source-map-support": "^0.5.6",
+    "supertest": "^6.3.3",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.1.0",
     "typescript": "^4.3.5",
