@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 @plugin(paginate)
 export class User {
-  @prop({ required: true, default: uuidv4()  })
+  @prop({ required: true })
   _id: string;
 
   @prop({ required: true, unique: true })
@@ -61,6 +61,7 @@ export class User {
     const now = new Date();
     const newUser = new UserModel({
       ...user,
+      _id: uuidv4(),
       createdAt: now,
       updatedAt: now,
     });
