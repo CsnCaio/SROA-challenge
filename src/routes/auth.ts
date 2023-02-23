@@ -1,4 +1,7 @@
-import { Request, Router, Response, NextFunction } from 'express';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { registerUserDTO } from '../controllers/dtos/register-user.dto';
+import { NextFunction, Request, Response, Router } from 'express';
 import {
   forgotPassword,
   login,
@@ -30,12 +33,29 @@ export default (app: any) => {
 
   router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const response: any = await register(req.body);
-      if (response && response.exists) {
-        return res.status(403).json({ success: false, message: 'User already exists' });
+      const user = plainToInstance(registerUserDTO, req.body)
+      const errors = await validate(user, { skipMissingProperties: true })
+      if (errors.length > 0) {
+        const errorMsgs = Array();
+        for (const error of errors) {
+          errorMsgs.push(error.constraints)
+        }
+        return res.status(400).json(errorMsgs)
       }
+
+      const response = await register(req.body as registerUserDTO);
+      if (typeof response === 'boolean') {
+        return res.status(403).json({
+          success: false,
+          message: 'User already exists'
+        });
+      }
+
       if (response) {
-        return res.status(201).json({ success: true, response });
+        return res.status(201).json({
+          success: true,
+          response
+        });
       }
       return res.status(204).json({});
     } catch (error) {
@@ -81,7 +101,7 @@ export default (app: any) => {
         return res.status(200).json({
           success: true,
           message:
-            'Your password was updated succesfully. Now you can login with your new password',
+            'Your password was updated successfully. Now you can login with your new password',
         });
       }
       if (response && !response.exists) {
