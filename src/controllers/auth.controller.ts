@@ -1,10 +1,11 @@
+import { addMinutes } from 'date-fns';
 import createError from 'http-errors';
-import { User, UserModel } from '../models/user';
-import { ClientInfo, RefreshTokenModel } from '../models/refresh-token';
-import { comparePasswords, hashPassword } from '../helpers/hash.helper';
 import jwt from 'jsonwebtoken';
 import uuid from 'uuid';
-import { addMinutes } from 'date-fns';
+import { hashPassword } from '../helpers/hash.helper';
+import { ClientInfo } from '../models/refresh-token';
+import { UserModel } from '../models/user';
+import { registerUserDTO } from './dtos/register-user.dto';
 
 const createToken = (user: any) => {
   return jwt.sign(user, process.env['JWT_SECRET'], {
@@ -17,18 +18,25 @@ export const login = async (
   password: string,
   clientInfo: ClientInfo
 ) => {
- // Your solution here
+  // Your solution here
+  return {
+    exists: true
+  }
 
 };
 
 export const refreshToken = async (refreshToken: string) => {
- // Your solution here
+  // Your solution here
 
 };
 
-export const register = async (user: User) => {
-  // Your solution here
-  
+export const register = async (user: registerUserDTO) => {
+  const userExists = await UserModel.exists({ email: user.email })
+  if (userExists) {
+    return userExists
+  }
+
+  return UserModel.add(user)
 };
 
 export const forgotPassword = async (email: string) => {
@@ -56,15 +64,15 @@ export const forgotPassword = async (email: string) => {
 
 export const resetPassword = async (email: string, password: string, token: string) => {
   try {
-    const user = await UserModel.getByEmail(email, false);
+    const user = await UserModel.getByEmail(email);
     if (!user) {
-      throw createError(403, 'There was a problem reseting your password. User does not exist');
+      throw createError(403, 'There was a problem resetting your password. User does not exist');
     }
     if (user.passwordResetToken !== token) {
-      throw createError(403, 'There was a problem reseting your password. Invalid Token');
+      throw createError(403, 'There was a problem resetting your password. Invalid Token');
     }
     if (user.passwordResetTokenExpires < new Date()) {
-      throw createError(403, 'There was a problem reseting your password. Token expired');
+      throw createError(403, 'There was a problem resetting your password. Token expired');
     }
     const hashedPassword = hashPassword(password);
     await user.updateOne({ password: hashedPassword });
