@@ -63,9 +63,7 @@ export default (app: any) => {
   router.post('/validate-token', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const tokenHeader = req.get('token');
-      console.log("🚀 ~ file: auth.ts:66 ~ router.post ~ tokenHeader:", tokenHeader)
-
-      const tokenValidationResult = validateToken(tokenHeader)
+      const tokenValidationResult = await validateToken(tokenHeader)
       return res.status(200).json(tokenValidationResult)
     } catch (error) {
       return next(error);
