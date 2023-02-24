@@ -30,13 +30,17 @@ export const refreshToken = async (refreshToken: string) => {
 
 };
 
-export const register = async (user: registerUserDTO) => {
-  const userExists = await UserModel.exists({ email: user.email })
-  if (userExists) {
-    return userExists
-  }
+export const register = async (user: RegisterUserDTO) => {
+  try {
+    const userExists = await UserModel.exists({ email: user.email })
+    if (userExists) {
+      return userExists
+    }
 
-  return UserModel.add(user)
+    return UserModel.add(user)
+  } catch (error) {
+    throw error
+  }
 };
 
 export const forgotPassword = async (email: string) => {
