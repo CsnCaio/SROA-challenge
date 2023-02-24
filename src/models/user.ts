@@ -1,6 +1,6 @@
 import { ReturnModelType, getModelForClass, plugin, prop } from '@typegoose/typegoose';
 import paginate from 'mongoose-paginate-v2';
-import { registerUserDTO } from '../controllers/dtos/register-user.dto';
+import { RegisterUserDTO } from '../dtos/register-user.dto';
 import { v4 as uuidv4 } from 'uuid'
 
 // You User Model definition here
@@ -56,7 +56,7 @@ export class User {
 
   static async add(
     this: ReturnModelType<typeof User>,
-    user: registerUserDTO
+    user: RegisterUserDTO
   ) {
     const now = new Date();
     const newUser = new UserModel({

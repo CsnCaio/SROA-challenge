@@ -2,8 +2,8 @@ import { addMinutes } from 'date-fns';
 import createError from 'http-errors';
 import jwt from 'jsonwebtoken';
 import uuid from 'uuid';
+import { RegisterUserDTO } from '../dtos/register-user.dto';
 import { hashPassword } from '../helpers/hash.helper';
-import { ClientInfo } from '../models/refresh-token';
 import { UserModel } from '../models/user';
 import { registerUserDTO } from './dtos/register-user.dto';
 
