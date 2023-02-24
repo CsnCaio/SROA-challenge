@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import request from 'supertest';
 import app from '../../app';
 import { registerUserDTO } from '../../controllers/dtos/register-user.dto';
+import { UserModel } from '../../models/user';
 
 function createRegisterUserDTO(): registerUserDTO {
   return {
@@ -13,9 +14,15 @@ function createRegisterUserDTO(): registerUserDTO {
   }
 }
 
-describe('Auth Controller Tests', () => {
-  describe('Sign Up', () => {
+async function sendUserRegistrationRequest(userDTO: registerUserDTO) {
+  return request(app)
+    .post('/api/register')
+    .set('Accept', 'application/json')
+    .send(userDTO)
+}
 
+describe('Auth Controller Tests', () => {
+  describe('Sign Up API', () => {
     describe('DTO Validation', () => {
       let userDTO: registerUserDTO;
       beforeEach(() => userDTO = createRegisterUserDTO())
@@ -24,11 +31,7 @@ describe('Auth Controller Tests', () => {
         const user = { ...userDTO }
         delete user.email;
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
-
+        const response = await sendUserRegistrationRequest(user);
 
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(400);
@@ -39,11 +42,7 @@ describe('Auth Controller Tests', () => {
         const user = { ...userDTO }
         delete user.password;
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
-
+        const response = await sendUserRegistrationRequest(user);
 
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(400);
@@ -54,11 +53,7 @@ describe('Auth Controller Tests', () => {
         const user = { ...userDTO }
         delete user.name;
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
-
+        const response = await sendUserRegistrationRequest(user);
 
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(400);
@@ -69,11 +64,7 @@ describe('Auth Controller Tests', () => {
         const user = { ...userDTO }
         delete user.role;
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
-
+        const response = await sendUserRegistrationRequest(user);
 
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(400);
@@ -84,10 +75,7 @@ describe('Auth Controller Tests', () => {
         const user = { ...userDTO }
         delete user.dob;
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
+        const response = await sendUserRegistrationRequest(user);
 
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(201);
@@ -99,19 +87,34 @@ describe('Auth Controller Tests', () => {
       let userDTO: registerUserDTO;
       beforeEach(() => userDTO = createRegisterUserDTO())
 
-      it('Should return a CREATED and persist in DB if DTO is correct', async () => {
+      it('Should return a CREATED and save in DB if DTO is correct', async () => {
         const user = { ...userDTO }
 
-        const response = await request(app)
-          .post('/api/register')
-          .set('Accept', 'application/json')
-          .send(user)
-
+        const response = await sendUserRegistrationRequest(user);
         expect(response.headers["content-type"]).toMatch(/json/);
         expect(response.status).toEqual(201);
         expect(response.body.success).toBeTruthy()
+
+        const dbUser = await UserModel.findOne({ email: user.email })
+        expect(dbUser.name).toBe(user.name)
+        expect(dbUser.password).toBe(user.password)
+        expect(dbUser.role).toBe(user.role)
+        expect(dbUser.dob).toBe(user.dob)
+      })
+
+      it('Should return an error if the e-mail already exists', async () => {
+        const user = { ...userDTO }
+
+        const response = await sendUserRegistrationRequest(user);
+        expect(response.headers["content-type"]).toMatch(/json/);
+        expect(response.status).toEqual(201);
+        expect(response.body.success).toBeTruthy()
+
+        const secondResponse = await sendUserRegistrationRequest(user);
+        expect(secondResponse.status).toBe(403)
+        expect(secondResponse.body.success).toBeFalsy()
+        expect(secondResponse.body.message).toBe('User already exists')
       })
     })
-
   })
 })
