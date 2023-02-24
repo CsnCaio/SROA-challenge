@@ -8,8 +8,8 @@ export enum Email {
   // Client
   PaymentProcessed = 'd-xxxxxxxxxxxxxxxxxxxxxxxxxx',
 
-  // Referal
-  ReferalFriend = 'd-xxxxxxxxxxxxxxxxxxxxxxxxxx',
+  // Referral
+  ReferralFriend = 'd-xxxxxxxxxxxxxxxxxxxxxxxxxx',
 
   //Survey
   SurveyFilingFiled = 'd-xxxxxxxxxxxxxxxxxxxxxxxxxx',
