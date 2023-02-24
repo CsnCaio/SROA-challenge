@@ -80,15 +80,18 @@ export const register = async (user: RegisterUserDTO) => {
 };
 
 export const validateToken = async (token: string): Promise<{ token: string, userId: string } | null> => {
-  const tokenVerificationResult = jwt.verify(token, process.env['JWT_SECRET'])
-  console.log("🚀 ~ file: auth.controller.ts:84 ~ validateToken ~ tokenVerificationResult:", tokenVerificationResult)
-  
-  return null
+  try {
+    const tokenVerificationResult = jwt.verify(token, process.env['JWT_SECRET'])    
+    return { token, userId: tokenVerificationResult['id'] }
+  } catch (error) {
+    throw createError(400, error.message)
+  }
 }
 
 export const refreshToken = async (refreshToken: string) => {
   // Your solution here
 };
+
 export const forgotPassword = async (email: string) => {
   try {
     const existingUser = await UserModel.getByEmail(email);
