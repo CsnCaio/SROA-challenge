@@ -1,6 +1,6 @@
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { registerUserDTO } from '../controllers/dtos/register-user.dto';
+import { RegisterUserDTO } from '../dtos/register-user.dto';
 import { NextFunction, Request, Response, Router } from 'express';
 import {
   forgotPassword,
@@ -9,6 +9,7 @@ import {
   register,
   resetPassword,
 } from '../controllers/auth.controller';
+import { UserLoginDTO } from '../dtos/login.dto';
 
 export default (app: any) => {
   const router = Router();
@@ -18,14 +19,24 @@ export default (app: any) => {
 
   router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email, password, client } = req.body;
-      const response = await login(email, password, client);
-      if (response) {
-        return res.json(response);
+      const loginRequestDTO = plainToInstance(UserLoginDTO, req.body)
+      const errors = await validate(loginRequestDTO, { skipMissingProperties: true })
+      if (errors.length > 0) {
+        const errorMsgs = Array();
+        for (const error of errors) {
+          errorMsgs.push(error.constraints)
+        }
+        return res.status(400).json(errorMsgs)
       }
+
+      const { email, password } = req.body;
+      const response = await login(email, password);
+      // if (response) {
+      //   return res.json(response);
+      // }
       return res
         .status(401)
-        .json({ message: 'The username or password is wrong please check and try again' });
+        .json({ message: 'The username or password is wrong! Please, check it and try again' });
     } catch (error) {
       return next(error);
     }
@@ -33,7 +44,7 @@ export default (app: any) => {
 
   router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const user = plainToInstance(registerUserDTO, req.body)
+      const user = plainToInstance(RegisterUserDTO, req.body)
       const errors = await validate(user, { skipMissingProperties: true })
       if (errors.length > 0) {
         const errorMsgs = Array();
@@ -43,7 +54,7 @@ export default (app: any) => {
         return res.status(400).json(errorMsgs)
       }
 
-      const response = await register(req.body as registerUserDTO);
+      const response = await register(req.body as RegisterUserDTO);
       if (typeof response === 'boolean') {
         return res.status(403).json({
           success: false,
