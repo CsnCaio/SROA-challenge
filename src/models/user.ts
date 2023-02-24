@@ -20,22 +20,28 @@ export class User {
   name: string;
 
   @prop()
-  dob: string;
+  dob?: string;
 
   @prop({ required: true })
   role: string;
 
   @prop()
-  passwordResetToken: string;
+  navigationToken?: string;
+
+  @prop({default: 0})
+  failLoginAttempts?: number;
 
   @prop()
-  passwordResetTokenExpires: Date;
+  passwordResetToken?: string;
 
   @prop()
-  createdAt: Date;
+  passwordResetTokenExpires?: Date;
 
   @prop()
-  updatedAt: Date;
+  createdAt?: Date;
+
+  @prop()
+  updatedAt?: Date;
 
   static async getUsers(
     this: ReturnModelType<typeof User>,

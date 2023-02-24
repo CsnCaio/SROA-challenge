@@ -5,24 +5,64 @@ import uuid from 'uuid';
 import { RegisterUserDTO } from '../dtos/register-user.dto';
 import { hashPassword } from '../helpers/hash.helper';
 import { UserModel } from '../models/user';
-import { registerUserDTO } from './dtos/register-user.dto';
 
 const createToken = (user: any) => {
-  return jwt.sign(user, process.env['JWT_SECRET'], {
+  return jwt.sign(user.toJSON(), process.env['JWT_SECRET'], {
     expiresIn: process.env['TOKEN_EXPIRES_IN'],
   });
 };
 
 export const login = async (
   email: string,
-  password: string,
-  clientInfo: ClientInfo
-) => {
-  // Your solution here
-  return {
-    exists: true
-  }
+  password: string
+): Promise<string> => {
+  try {
+    const user = await UserModel.getByEmail(email)
+    if (!user) {
+      throw createError(400, 'E-mail not found! Please, check it and try again')
+    }
 
+    if (user.failLoginAttempts >= 3) {
+      throw createError(
+        400,
+        `Still here? 
+        You\'ve reached your login attempts. 
+        Please, reset your password by making a POST to api/reset-password`
+      )
+    }
+
+    if (user.password !== password) {
+      if (user.failLoginAttempts === 2) {
+        await user.updateOne({
+          failLoginAttempts: Number(user.failLoginAttempts) + 1
+        })
+
+        throw createError(
+          400,
+          `You\'ve reached your login attempts. 
+          Please, reset your password by making a POST to api/reset-password`
+        )
+      }
+
+      await user.updateOne({
+        failLoginAttempts: Number(user.failLoginAttempts) + 1
+      })
+
+      throw createError(
+        400,
+        `Wrong password!
+        Please, check it and try again. 
+        PS: You have three chances!`
+      )
+    }
+
+    const navigationToken = createToken(user)
+    await user.updateOne({ navigationToken })
+
+    return navigationToken
+  } catch (error) {
+    throw error
+  }
 };
 
 export const refreshToken = async (refreshToken: string) => {
@@ -34,7 +74,7 @@ export const register = async (user: RegisterUserDTO) => {
   try {
     const userExists = await UserModel.exists({ email: user.email })
     if (userExists) {
-      return userExists
+      throw createError(403, 'User already exists')
     }
 
     return UserModel.add(user)
