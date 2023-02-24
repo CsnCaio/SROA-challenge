@@ -20,7 +20,7 @@ export default (app: any) => {
   router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const loginRequestDTO = plainToInstance(UserLoginDTO, req.body)
-      const errors = await validate(loginRequestDTO, { skipMissingProperties: true })
+      const errors = await validate(loginRequestDTO)
       if (errors.length > 0) {
         const errorMsgs = Array();
         for (const error of errors) {
@@ -30,13 +30,8 @@ export default (app: any) => {
       }
 
       const { email, password } = req.body;
-      const response = await login(email, password);
-      // if (response) {
-      //   return res.json(response);
-      // }
-      return res
-        .status(401)
-        .json({ message: 'The username or password is wrong! Please, check it and try again' });
+      const token = await login(email, password);
+      return res.status(200).json({ token });
     } catch (error) {
       return next(error);
     }
@@ -45,7 +40,7 @@ export default (app: any) => {
   router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
     try {
       const user = plainToInstance(RegisterUserDTO, req.body)
-      const errors = await validate(user, { skipMissingProperties: true })
+      const errors = await validate(user)
       if (errors.length > 0) {
         const errorMsgs = Array();
         for (const error of errors) {
@@ -55,20 +50,10 @@ export default (app: any) => {
       }
 
       const response = await register(req.body as RegisterUserDTO);
-      if (typeof response === 'boolean') {
-        return res.status(403).json({
-          success: false,
-          message: 'User already exists'
-        });
-      }
-
-      if (response) {
-        return res.status(201).json({
-          success: true,
-          response
-        });
-      }
-      return res.status(204).json({});
+      return res.status(201).json({
+        success: true,
+        response
+      });
     } catch (error) {
       return next(error);
     }
