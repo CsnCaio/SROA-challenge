@@ -319,7 +319,23 @@ describe('Auth Controller Tests', () => {
   })
 
   describe('Validate Token API', () => {
-    it.only('Should return a BAD_REQUEST if the token header is empty', async () => {
+    it('Should return a BAD_REQUEST if the token header is empty', async () => {
+      const tokenValidationResponse = await sendTokenValidationRequest('')
+
+      expect(tokenValidationResponse.headers["content-type"]).toMatch(/json/)
+      expect(tokenValidationResponse.status).toEqual(400)
+      expect(tokenValidationResponse.body.error.message).toBe('jwt must be provided')
+    })
+
+    it('Should return a BAD_REQUEST if the token header is wrong', async () => {
+      const tokenValidationResponse = await sendTokenValidationRequest('malformedOne')
+
+      expect(tokenValidationResponse.headers["content-type"]).toMatch(/json/)
+      expect(tokenValidationResponse.status).toEqual(400)
+      expect(tokenValidationResponse.body.error.message).toBe('jwt malformed')
+    })
+
+    it('Should return an OK if the token header is valid', async () => {
       const userRegistrationDTO = createRegisterUserDTO()
       const userRegistrationResponse = await sendUserRegistrationRequest(jsonToFormData(userRegistrationDTO));
 
@@ -339,6 +355,11 @@ describe('Auth Controller Tests', () => {
 
       const { token } = response.body
       const tokenValidationResponse = await sendTokenValidationRequest(token)
+
+      expect(tokenValidationResponse.headers["content-type"]).toMatch(/json/)
+      expect(tokenValidationResponse.status).toEqual(200)
+      expect(tokenValidationResponse.body.token).toBe(token)
+      expect(tokenValidationResponse.body.id).toBe(userRegistrationResponse.body.id)
     })
   })
 })
