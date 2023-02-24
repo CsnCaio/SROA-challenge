@@ -43,6 +43,14 @@ async function sendUserLoginRequest(userLoginDTO: string) {
     .send(userLoginDTO)
 }
 
+async function sendTokenValidationRequest(tokenHeader: string) {
+  return request(app)
+    .post('/api/validate-token')
+    .set('Accept', 'application/json')
+    .set('token', tokenHeader)
+    .send()
+}
+
 describe('Auth Controller Tests', () => {
   describe('Sign Up API', () => {
     let userRegistrationDTO: RegisterUserDTO;
@@ -307,6 +315,30 @@ describe('Auth Controller Tests', () => {
       expect(fourthAttemptResponse.headers["content-type"]).toMatch(/json/)
       expect(fourthAttemptResponse.status).toEqual(400)
       expect(fourthAttemptResponse.body.error.message).toMatch(/Still here\?/)
+    })
+  })
+
+  describe('Validate Token API', () => {
+    it.only('Should return a BAD_REQUEST if the token header is empty', async () => {
+      const userRegistrationDTO = createRegisterUserDTO()
+      const userRegistrationResponse = await sendUserRegistrationRequest(jsonToFormData(userRegistrationDTO));
+
+      expect(userRegistrationResponse.headers["content-type"]).toMatch(/json/);
+      expect(userRegistrationResponse.status).toEqual(201);
+      expect(userRegistrationResponse.body.success).toBeTruthy()
+
+      const response = await sendUserLoginRequest(
+        jsonToFormData({
+          email: userRegistrationDTO.email,
+          password: userRegistrationDTO.password
+        })
+      )
+      expect(response.headers["content-type"]).toMatch(/json/)
+      expect(response.status).toEqual(200)
+      expect(typeof response.body.token).toBe('string')
+
+      const { token } = response.body
+      const tokenValidationResponse = await sendTokenValidationRequest(token)
     })
   })
 })

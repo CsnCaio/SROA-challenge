@@ -65,10 +65,6 @@ export const login = async (
   }
 };
 
-export const refreshToken = async (refreshToken: string) => {
-  // Your solution here
-
-};
 
 export const register = async (user: RegisterUserDTO) => {
   try {
@@ -83,6 +79,16 @@ export const register = async (user: RegisterUserDTO) => {
   }
 };
 
+export const validateToken = async (token: string): Promise<{ token: string, userId: string } | null> => {
+  const tokenVerificationResult = jwt.verify(token, process.env['JWT_SECRET'])
+  console.log("🚀 ~ file: auth.controller.ts:84 ~ validateToken ~ tokenVerificationResult:", tokenVerificationResult)
+  
+  return null
+}
+
+export const refreshToken = async (refreshToken: string) => {
+  // Your solution here
+};
 export const forgotPassword = async (email: string) => {
   try {
     const existingUser = await UserModel.getByEmail(email);

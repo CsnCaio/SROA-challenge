@@ -8,6 +8,7 @@ import {
   refreshToken,
   register,
   resetPassword,
+  validateToken,
 } from '../controllers/auth.controller';
 import { UserLoginDTO } from '../dtos/login.dto';
 
@@ -54,6 +55,18 @@ export default (app: any) => {
         success: true,
         response
       });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
+  router.post('/validate-token', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const tokenHeader = req.get('token');
+      console.log("🚀 ~ file: auth.ts:66 ~ router.post ~ tokenHeader:", tokenHeader)
+
+      const tokenValidationResult = validateToken(tokenHeader)
+      return res.status(200).json(tokenValidationResult)
     } catch (error) {
       return next(error);
     }
